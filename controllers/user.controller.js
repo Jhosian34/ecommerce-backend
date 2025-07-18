@@ -2,6 +2,8 @@ const User= require('../models/user.model')
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
 const saltRounds = 10
+const jwt = require("jsonwebtoken")
+const secret = process.env.JWT_SECRET
 
 async function getUsers(req, res) {
     try {
@@ -98,6 +100,10 @@ async function deleteUserById(req, res){
 async function updateUserById(req, res) {
     try {
     const { id } = req.params;
+
+    if (req.user.id === id){
+        return res.status(403).send({message: "No tienes permiso para actualizar este usuario"})
+    }
     const dataToUpdate = req.body;
     dataToUpdate.password = undefined;
 
@@ -160,9 +166,12 @@ try {
 }
     users.password = undefined
 
+    const token = jwt.sign(users.toJSON(), secret, {expiresIn:"1h"})
+
     return res.status(200).send({
         message:"Inicio de sesión exitoso",
-        users
+        users,
+        token
     })
 } 
 
@@ -172,7 +181,6 @@ catch (error) {
 }
 
 }
-
 
 module.exports ={
     getUsers,
