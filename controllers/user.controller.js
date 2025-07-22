@@ -154,25 +154,30 @@ try {
     if (!email || !password) {
         return res.status(400).send({ message: "Email y contraseña son obligatorios" });
     }
-    const users = await User.findOne({email: email.toLowerCase()})
+    const user = await User.findOne({email: email.toLowerCase()})
 
-    if (!users) {
+    if (!user) {
     return res.status(400).send({ mensaje: "Usuario o contraseña incorrectos" });
 }
-    const isValidPassword = bcrypt.compareSync(password, users.password)
+    const isValidPassword = bcrypt.compareSync(password, user.password)
 
     if (!isValidPassword) {
     return res.status(401).send({ mensaje: "Correo o contraseña incorrectos." });
 }
-    users.password = undefined
+    user.password = undefined
 
-    const token = jwt.sign(users.toJSON(), secret, {expiresIn:"1h"})
+    const token = jwt.sign(user.toJSON(), secret, {expiresIn:"1h"})
 
     return res.status(200).send({
-        message:"Inicio de sesión exitoso",
-        users,
-        token
-    })
+    message: "Inicio de sesión exitoso",
+    user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+    },
+    token
+});
 } 
 
 catch (error) {

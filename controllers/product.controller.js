@@ -3,24 +3,42 @@ const mongoose = require("mongoose");
 
 async function createProduct(req, res) {
     try {
-        const product = new Product(req.body);
+        console.log("BODY:", req.body);
+        console.log("FILE:", req.file);
+
+        const { name, price, description, category } = req.body;
+
+        const product = new Product({
+            name,
+            price,
+            description,
+            category,
+        });
+
+        if (req.file) {
+            product.image = req.file.filename;
+        } else {
+            return res.status(400).send({
+                message: "Debe enviar una imagen del producto",
+            });
+        }
+
         const productSaved = await product.save();
 
-        return res
-            .status(201)
-            .send({
-                message: "Producto creado correctamente",
-                product: productSaved,
-            });
+        return res.status(201).send({
+            message: "Producto creado correctamente",
+            product: productSaved,
+        });
     } catch (error) {
         if (error instanceof mongoose.Error.ValidationError) {
             return res
                 .status(400)
                 .send({ message: "Los datos enviados no son correctos" });
         }
+        console.log(error);
         return res
             .status(500)
-            .send({ message: "EL producto no se ha podido crear" });
+            .send({ message: "El producto no se ha podido crear" });
     }
 }
 async function getProduct(req, res) {
@@ -49,9 +67,28 @@ async function getProductById(req, res) {
 
 async function updateProductById(req, res) {
     try {
+        console.log('req.body:', req.body);
+        console.log('req.file:', req.file);
+        
+        const updateData = { ...req.body };
+
+
+        if (updateData.createdAt) {
+        updateData.createdAt = new Date(updateData.createdAt);
+}
+
+        if (req.file) {
+            updateData.image = req.file.filename;
+        } else {
+
+            delete updateData.image;
+        }
+
+        console.log('Datos para actualizar:', updateData);
+
         const productUpdated = await Product.findByIdAndUpdate(
             req.params.id,
-            req.body,
+            updateData,
             { new: true, runValidators: true }
         ).select({ __v: 0 });
 
@@ -68,6 +105,7 @@ async function updateProductById(req, res) {
         return res.status(500).send({ message: "Error al actualizar el producto" });
     }
 }
+
 async function deleteProductById(req, res) {
     try {
         const productDeleted = await Product.findByIdAndDelete(req.params.id);

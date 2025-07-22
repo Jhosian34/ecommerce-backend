@@ -4,16 +4,13 @@ const userController = require("../controllers/user.controller")
 const auth = require("../middlewares/auth.middleware")
 const isAdmin = require ("../middlewares/admin.middleware")
 
-router.get("/users", userController.getUsers)
 
-router.post("/users", userController.createUsers)
+router.post("/login", userController.loginUser);
+router.get("/", userController.getUsers);
+router.post("/", userController.createUsers);
+router.get("/:id", userController.getUserById);
+router.delete("/:id", [auth, isAdmin], userController.deleteUserById);
+router.put("/:id", [auth], userController.updateUserById);
 
-router.get("/users/:id", userController.getUserById)
-
-router.delete("/users/:id", [auth, isAdmin], userController.deleteUserById)
-
-router.put("/users/:id", [auth], userController.updateUserById)
-
-router.post("/login", userController.loginUser)
 
 module.exports = router

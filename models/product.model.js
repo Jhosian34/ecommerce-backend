@@ -30,7 +30,7 @@ const productSchema = new Schema(
             type: String,
             required: true,
             trim: true,
-            enum:['electrodoméstico', 'iluminación', 'herramienta eléctrica', 'cableado' ,]
+            enum:['electrodoméstico', 'iluminación', 'herramienta eléctrica', 'cableado' ,'componente eléctrico',]
         },
         createdAt:{
             type: Date,
