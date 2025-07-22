@@ -159,6 +159,10 @@ try {
     if (!user) {
     return res.status(400).send({ mensaje: "Usuario o contraseña incorrectos" });
 }
+    if (!user.password || typeof user.password !== 'string') {
+            return res.status(500).send({ mensaje: "Error interno: contraseña no encontrada" });
+        }
+
     const isValidPassword = bcrypt.compareSync(password, user.password)
 
     if (!isValidPassword) {
