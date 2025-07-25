@@ -24,6 +24,7 @@ const userSchema = new mongoose.Schema({
             enum: ['user', 'admin','client'], 
     default: 'user'
     },
+    avatar: { type: String, required: false },
 
     createdAt: { type: Date, default: Date.now },
 

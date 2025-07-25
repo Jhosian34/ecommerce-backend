@@ -16,6 +16,6 @@ app.use("/users", userRoutes);
 
 app.use("/products", productRoutes);
 
-app.use("/avatar", avatarRoutes);
+app.use("/avatars", avatarRoutes);
 
 module.exports = app

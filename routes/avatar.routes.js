@@ -4,6 +4,6 @@ const upload = require('../middlewares/upload.middleware');
 const { uploadAvatar } = require('../controllers/avatar.controller');
 const auth = require('../middlewares/auth.middleware');
 
-router.put('/:id', auth, upload.single('image'), uploadAvatar);
+router.post('/upload/:id', auth, upload.single('avatar'), uploadAvatar);
 
 module.exports = router;
