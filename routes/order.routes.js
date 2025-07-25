@@ -1,43 +1,18 @@
-const express = require("express")
-const router = express.Router()
-const Order = require("../models/order")
-const Product = require('../models/product.model')
+const express = require("express");
+const router = express.Router();
+const orderController = require("../controllers/order.controller");
+const auth = require("../middlewares/auth.middleware");
+const isAdmin = require("../middlewares/admin.middleware");
 
-router.post("/", async (req, res) => {
-    try {
-        const { user, items } = req.body;
 
-        const populatedItems = await Promise.all(
-            items.map(async (item) => {
-                const product = await Product.findById(item.productId || item._id);
-                if (!product) throw new Error("Producto no encontrado");
+router.post("/", auth, orderController.createOrder);
 
-                return {
-                    productId: product._id,
-                    name: product.name,
-                    price: product.price,
-                    image: product.image,
-                    quantity: item.quantity
-                };
-            })
-        );
+router.get("/", auth, isAdmin, orderController.getAllOrders);
 
-        const total = populatedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+router.get("/my-orders", auth, orderController.getOrdersByUser);
 
-        const newOrder = new Order({
-            user, 
-            items: populatedItems,
-            total
-        });
+router.get("/:id", auth, orderController.getOrderById);
 
-        await newOrder.save();
-
-        res.status(201).json(newOrder);
-    } catch (err) {
-        res.status(400).json({ error: err.message });
-    }
-});
-
+router.put("/:id", auth, isAdmin, orderController.updateOrderStatus);
 
 module.exports = router;
-

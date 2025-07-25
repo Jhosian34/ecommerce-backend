@@ -12,4 +12,4 @@ router.get("/:id", productController.getProductById);
 router.put("/:id", auth, isAdmin, upload, productController.updateProductById);
 router.delete("/:id", auth, isAdmin, productController.deleteProductById);
 
-module.exports = router
+module.exports = router 
