@@ -19,15 +19,18 @@ const orderSchema = new mongoose.Schema({
         required: true
     },
     items: [orderItemSchema],
+
     total: {
         type: Number,
         required: true
     },
+
     status: {
         type: String,
         enum: ['pending', 'paid', 'shipped', 'cancelled'],
         default: 'pending'
     },
+    
     createdAt: {
         type: Date,
         default: Date.now
