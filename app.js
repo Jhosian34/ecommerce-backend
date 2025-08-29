@@ -6,17 +6,18 @@ const productRoutes = require("./routes/product.routes")
 const avatarRoutes = require("./routes/avatar.routes");
 const orderRoutes = require("./routes/order.routes")
 
-app.use(express.json ())
+app.use(express.json())
 
-const corsOptions ={
-    origin: 'https://front-djsoluciones.netlify.app/'
-}
+const corsOptions = {
+    origin: ['https://tu-frontend.netlify.app', 'http://localhost:5173'],
+    credentials: true
+};
 
 app.use(cors(corsOptions))
 
 app.use("/uploads", express.static("uploads"))
 
-app.use("/users", userRoutes);     
+app.use("/users", userRoutes);
 
 app.use("/products", productRoutes);
 

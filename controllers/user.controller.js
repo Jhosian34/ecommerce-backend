@@ -157,12 +157,12 @@ async function loginUser(req, res) {
         const user = await User.findOne({ email: email.toLowerCase() })
 
         if (!user) {
-            return res.status(400).send({ mensaje: "Usuario o contraseña incorrectos" });
+            return res.status(400).send({ message: "Usuario o contraseña incorrectos" });
         }
 
 
         if (!user.password || typeof user.password !== 'string') {
-            return res.status(500).send({ mensaje: "Error interno: contraseña no encontrada" });
+            return res.status(500).send({ message: "Error interno: contraseña no encontrada" });
         }
 
         const isValidPassword = bcrypt.compareSync(password, user.password)
