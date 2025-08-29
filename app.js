@@ -8,7 +8,11 @@ const orderRoutes = require("./routes/order.routes")
 
 app.use(express.json ())
 
-app.use(cors())
+const corsOptions ={
+    origin: 'https://front-djsoluciones.netlify.app/'
+}
+
+app.use(cors(corsOptions))
 
 app.use("/uploads", express.static("uploads"))
 
