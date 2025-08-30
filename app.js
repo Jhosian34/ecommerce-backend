@@ -9,7 +9,7 @@ const orderRoutes = require("./routes/order.routes")
 app.use(express.json())
 
 const corsOptions = {
-    origin: ['https://tu-frontend.netlify.app', 'http://localhost:5173'],
+    origin: ['https://front-djsoluciones.netlify.app', 'http://localhost:5173'],
     credentials: true
 };
 
