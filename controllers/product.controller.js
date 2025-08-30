@@ -16,7 +16,7 @@ async function createProduct(req, res) {
         });
 
         if (req.file) {
-            product.image = req.file.filename;
+            product.image = `/uploads/products/${req.file.filename}`;
         } else {
             return res.status(400).send({
                 message: "Debe enviar una imagen del producto",
