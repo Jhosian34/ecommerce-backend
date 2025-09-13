@@ -7,7 +7,6 @@ async function uploadAvatar(req, res) {
         if (!req.file) {
             return res.status(400).send({ message: "No se subió ninguna imagen" });
         }
-
         const relativePath = `/uploads/avatars/${req.file.filename}`;
         const fullUrl = `${req.protocol}://${req.get('host')}${relativePath}`;
 

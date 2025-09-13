@@ -4,6 +4,9 @@ const bcrypt = require('bcrypt')
 const saltRounds = 10
 const jwt = require("jsonwebtoken")
 const secret = process.env.JWT_SECRET
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY);
+const crypto = require('crypto');
 
 async function getUsers(req, res) {
     try {
@@ -159,12 +162,9 @@ async function loginUser(req, res) {
         if (!user) {
             return res.status(400).send({ message: "Usuario o contraseña incorrectos" });
         }
-
-
         if (!user.password || typeof user.password !== 'string') {
             return res.status(500).send({ message: "Error interno: contraseña no encontrada" });
         }
-
         const isValidPassword = bcrypt.compareSync(password, user.password)
 
         if (!isValidPassword) {
@@ -177,7 +177,6 @@ async function loginUser(req, res) {
             secret,
             { expiresIn: "1h" }
         );
-
         return res.status(200).send({
             message: "Inicio de sesión exitoso",
             user: {
@@ -185,17 +184,112 @@ async function loginUser(req, res) {
                 name: user.name,
                 email: user.email,
                 role: user.role,
-                avatar: user.avatar 
+                avatar: user.avatar
             },
             token
         });
     }
-
     catch (error) {
         console.error('Login error:', error);
         res.status(500).send({ message: "Error al iniciar sesión" });
     }
 
+}
+async function requestPasswordReset(req, res) {
+    const { email } = req.body;
+
+    if (!email) {
+        return res.status(400).send({ message: "Email es obligatorio" });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+
+    if (!user) {
+        return res.status(400).send({ message: "Usuario no encontrado" });
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiration = Date.now() + 3600000;
+
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = expiration;
+    await user.save();
+
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password/${token}`;
+
+    try {
+        await resend.emails.send({
+            from: 'Soporte <onboarding@resend.dev>',
+            to: user.email,
+            subject: 'Restablece tu contraseña',
+            html: `<p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
+                <a href="${resetLink}">${resetLink}</a>`
+        });
+
+        return res.status(200).send({
+            message: "Correo enviado para restablecer la contraseña",
+            token,
+            resetLink
+
+        });
+    } catch (error) {
+        console.error('Error al enviar correo:', error);
+        return res.status(500).send({ message: 'Error al enviar el correo' });
+    }
+}
+
+async function verifyResetToken(req, res) {
+    const { token } = req.params;
+
+    const user = await User.findOne({
+        resetPasswordToken: token,
+        resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+        return res.status(400).send({ message: "Token inválido o expirado" });
+    }
+
+    res.status(200).send({ message: "Token válido" });
+}
+
+async function resetPassword(req, res) {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+        return res.status(400).send({ message: "Token y nueva contraseña son obligatorios" });
+    }
+
+    const user = await User.findOne({
+        resetPasswordToken: token,
+        resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+        return res.status(400).send({ message: "Token inválido o expirado" });
+    }
+
+    const hashedPassword = bcrypt.hashSync(newPassword, 10);
+
+    user.password = hashedPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+
+    await user.save();
+    try {
+        await resend.emails.send({
+            from: 'Soporte <noreply@djsoluciones.net>',
+            to: user.email,
+            subject: 'Tu contraseña ha sido cambiada',
+            html: `<p>Hola ${user.name || 'usuario'},</p>
+                <p>Tu contraseña ha sido restablecida exitosamente.</p>
+                <p>Si no realizaste este cambio, por favor contáctanos de inmediato.</p>`
+        });
+    } catch (error) {
+        console.error('Error enviando email de confirmación:', error);
+    }
+
+    res.status(200).send({ message: "Contraseña restablecida exitosamente" });
 }
 
 async function registerUser(req, res) {
@@ -251,7 +345,7 @@ async function getCurrentUser(req, res) {
             return res.status(400).json({ message: "No se pudo obtener el ID del usuario" });
         }
 
-        const user = await User.findById(userId).select('-password'); 
+        const user = await User.findById(userId).select('-password');
 
         if (!user) {
             return res.status(404).json({ message: "Usuario no encontrado" });
@@ -267,9 +361,6 @@ async function getCurrentUser(req, res) {
     }
 }
 
-
-
-
 module.exports = {
     getUsers,
     createUsers,
@@ -279,4 +370,7 @@ module.exports = {
     loginUser,
     registerUser,
     getCurrentUser,
+    requestPasswordReset,
+    verifyResetToken,
+    resetPassword,
 }
