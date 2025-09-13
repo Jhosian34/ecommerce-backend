@@ -6,10 +6,10 @@ const isAdmin = require("../middlewares/admin.middleware")
 const upload = require("../middlewares/upload")
 
 
-router.post("/", auth, isAdmin, upload, productController.createProduct);
+router.post("/", auth, isAdmin, upload.single("image"), productController.createProduct);
 router.get("/", productController.getProduct);
 router.get("/:id", productController.getProductById);
-router.put("/:id", auth, isAdmin, upload, productController.updateProductById);
+router.put("/:id", auth, isAdmin, upload.single("image"), productController.updateProductById);
 router.delete("/:id", auth, isAdmin, productController.deleteProductById);
 
 module.exports = router 
